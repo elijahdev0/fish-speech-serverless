@@ -1,0 +1,57 @@
+ARG CUDA_VER=12.9.0
+ARG UBUNTU_VER=24.04
+ARG PY_VER=3.12
+ARG UV_VERSION=0.8.15
+ARG UV_EXTRA=cu129
+
+FROM nvidia/cuda:${CUDA_VER}-cudnn-runtime-ubuntu${UBUNTU_VER}
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    BACKEND=cuda \
+    FISH_MODEL_ID=fishaudio/s2-pro \
+    FISH_RUNPOD_WARMUP=1 \
+    FISH_DEFAULT_RESPONSE_FORMAT=wav \
+    FISH_USE_MEMORY_CACHE=on \
+    RUNPOD_INIT_TIMEOUT=800
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux \
+    && rm -f /etc/apt/apt.conf.d/docker-clean \
+    && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3-pip \
+        python3-dev \
+        git \
+        ca-certificates \
+        curl \
+        libsox-dev \
+        build-essential \
+        cmake \
+        libasound-dev \
+        portaudio19-dev \
+        libportaudio2 \
+        libportaudiocpp0 \
+        ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /uvx /bin/
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock README.md ./
+
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
+    uv python pin ${PY_VER} \
+    && uv sync --extra ${UV_EXTRA} --extra runpod --frozen --no-install-project
+
+COPY . .
+
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
+    uv sync --extra ${UV_EXTRA} --extra runpod --frozen
+
+ENTRYPOINT ["uv", "run", "runpod_handler.py"]

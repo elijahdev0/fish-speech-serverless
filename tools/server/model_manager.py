@@ -18,8 +18,8 @@ class ModelManager:
         llama_checkpoint_path: str,
         decoder_checkpoint_path: str,
         decoder_config_name: str,
+        warm_up: bool = True,
     ) -> None:
-
         self.mode = mode
         self.device = device
         self.half = half
@@ -50,13 +50,12 @@ class ModelManager:
         )
 
         # Warm up the models
-        if self.mode == "tts":
+        if warm_up and self.mode == "tts":
             self.warm_up(self.tts_inference_engine)
 
     def load_llama_model(
         self, checkpoint_path, device, precision, compile, mode
     ) -> None:
-
         if mode == "tts":
             self.llama_queue = launch_thread_safe_queue(
                 checkpoint_path=checkpoint_path,

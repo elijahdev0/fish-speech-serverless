@@ -61,6 +61,17 @@ Here are the official documents for Fish Audio S2, follow the instructions to ge
 - [Server Inference](https://speech.fish.audio/server/)
 - [Docker Setup](https://speech.fish.audio/install/#docker-setup)
 
+### Runpod Serverless
+
+This repository now includes a Runpod queue worker at `runpod_handler.py`, a dedicated Docker target at `docker/Dockerfile` (`runpod-serverless`), and a dedicated GitHub-build Dockerfile at `docker/Dockerfile.runpod`.
+
+- Use Runpod's queue-based Serverless mode with the worker entrypoint instead of starting `tools/api_server.py` inside the container.
+- Follow Runpod best practice by loading the model once at worker startup and reusing it across requests.
+- For production, configure the endpoint Model field as `fishaudio/s2-pro` so Runpod cached models can reduce cold starts.
+- For Runpod GitHub builds, set the Dockerfile path to `docker/Dockerfile.runpod`.
+- For manual Docker builds, you can also use `docker/Dockerfile` with `--target runpod-serverless`.
+- For local worker testing, run `uv run --extra cu129 --extra runpod python runpod_handler.py` and edit `test_input.json` as needed.
+
 > [!IMPORTANT]
 > **For SGLang server, please read [SGLang-Omni README](https://github.com/sgl-project/sglang-omni/blob/main/sglang_omni/models/fishaudio_s2_pro/README.md).**
 

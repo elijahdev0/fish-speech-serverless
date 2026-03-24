@@ -26,6 +26,14 @@
 #       --target server \
 #       -t fish-speech-server:cuda .
 
+# e.g. for building the Runpod Serverless worker:
+#   docker build \
+#       --platform linux/amd64 \
+#       -f docker/Dockerfile \
+#       --build-arg BACKEND=cuda \
+#       --target runpod-serverless \
+#       -t fish-speech-runpod:cuda .
+
 
 
 # Multi-platform build:
@@ -372,6 +380,25 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:${API_SERVER_PORT}/v1/health || exit 1
 
 ENTRYPOINT ["/app/start_server.sh"]
+
+# Runpod Serverless worker
+FROM app-base AS runpod-serverless
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+ARG UV_EXTRA
+ARG FISH_MODEL_ID="fishaudio/s2-pro"
+ARG FISH_RUNPOD_WARMUP=1
+ARG FISH_DEFAULT_RESPONSE_FORMAT="wav"
+
+ENV FISH_MODEL_ID=${FISH_MODEL_ID}
+ENV FISH_RUNPOD_WARMUP=${FISH_RUNPOD_WARMUP}
+ENV FISH_DEFAULT_RESPONSE_FORMAT=${FISH_DEFAULT_RESPONSE_FORMAT}
+ENV FISH_USE_MEMORY_CACHE=on
+ENV RUNPOD_INIT_TIMEOUT=800
+
+RUN uv sync --extra ${UV_EXTRA} --extra runpod --frozen
+
+ENTRYPOINT ["uv", "run", "runpod_handler.py"]
 
 # Development stage
 FROM app-base AS dev

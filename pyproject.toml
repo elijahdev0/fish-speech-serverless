@@ -70,6 +70,10 @@ cu129 = [
   "torch==2.8.0",
   "torchaudio",
 ]
+runpod = [
+  "huggingface_hub>=0.34.0",
+  "runpod>=1.7.13,<2",
+]
 
 [tool.uv]
 override-dependencies = [
