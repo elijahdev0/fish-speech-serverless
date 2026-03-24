@@ -47,12 +47,11 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
 
 RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
-    uv python pin ${PY_VER} \
-    && uv sync --extra ${UV_EXTRA} --extra runpod --frozen --no-install-project
+    uv sync --python ${PY_VER} --extra ${UV_EXTRA} --extra runpod --frozen --no-install-project
 
 COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked \
-    uv sync --extra ${UV_EXTRA} --extra runpod --frozen
+    uv sync --python ${PY_VER} --extra ${UV_EXTRA} --extra runpod --frozen
 
 ENTRYPOINT ["uv", "run", "runpod_handler.py"]
