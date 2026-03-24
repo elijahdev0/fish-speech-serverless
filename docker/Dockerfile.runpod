@@ -7,6 +7,9 @@ FROM ghcr.io/astral-sh/uv:0.8.15 AS uvbin
 
 FROM nvidia/cuda:${CUDA_VER}-cudnn-runtime-ubuntu${UBUNTU_VER}
 
+ARG PY_VER=3.12
+ARG UV_EXTRA=cu129
+
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
