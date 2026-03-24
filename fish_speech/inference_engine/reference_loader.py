@@ -1,4 +1,5 @@
 import io
+import importlib
 import re
 from hashlib import sha256
 from pathlib import Path
@@ -45,7 +46,7 @@ class ReferenceLoader:
             # torchaudio 2.9+ removed list_audio_backends()
             # Try ffmpeg first, fallback to soundfile
             try:
-                import torchaudio.io._load_audio_fileobj  # noqa: F401
+                importlib.import_module("torchaudio.io._load_audio_fileobj")
 
                 self.backend = "ffmpeg"
             except (ImportError, ModuleNotFoundError):
